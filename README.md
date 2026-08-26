@@ -1,169 +1,85 @@
 # CPU Scheduling Simulator
-### C++ → WebAssembly · Zero Backend · Five Algorithms
 
-A fully **client-side** CPU Scheduling Simulator where every scheduling algorithm is written in **C++**, compiled to **WebAssembly** via Emscripten, and executed directly in the browser. No backend. No server. Pure C++ performance in the browser.
+A full-stack CPU scheduling simulator with a **C++ REST API backend** (Crow) and a **Next.js frontend** (shadcn/ui).
 
----
-
-## Features
-
-| Algorithm | Type | Variant |
-|-----------|------|---------|
-| **FCFS** — First Come First Serve | Non-preemptive | — |
-| **SJF** — Shortest Job First | Non-preemptive | — |
-| **SRTF** — Shortest Remaining Time First | Preemptive | — |
-| **Round Robin** | Preemptive | Configurable quantum |
-| **Priority** | Both | Non-preemptive & Preemptive |
-
-- **Interactive Gantt chart** on `<canvas>` with hover tooltips
-- **Per-process metrics**: arrival, burst, completion, turnaround, waiting, response times
-- **Algorithm comparison chart** (Chart.js) — run multiple algorithms back-to-back and compare averages
-- **Dynamic process table** — add/remove rows freely
-- **JS Fallback** — works immediately without Emscripten (pure-JS implementations auto-activate if WASM isn't available)
-- Premium dark-mode UI (glassmorphism, animated, responsive)
+![architecture](https://img.shields.io/badge/Architecture-C%2B%2B%20%2B%20Next.js-indigo)
+![algorithms](https://img.shields.io/badge/Algorithms-5-violet)
+![license](https://img.shields.io/badge/License-MIT-green)
 
 ---
 
-## Project Structure
+## Supported Algorithms
+
+| Algorithm | Key | Preemptive |
+|-----------|-----|------------|
+| First Come First Served | `fcfs` | ❌ |
+| Shortest Job First | `sjf` | ❌ |
+| Shortest Remaining Time First | `srtf` | ✅ |
+| Round Robin | `round_robin` | ✅ |
+| Priority | `priority` | ❌ |
+
+---
+
+## Architecture
 
 ```
-cpu-scheduler/
-├── index.html                          # UI
-├── style.css                           # Dark-mode design system
-├── app.js                              # WASM orchestrator + renderer
-├── build.ps1                           # Windows build script
-├── build.sh                            # Linux/macOS build script
-├── third_party/
-│   └── nlohmann/
-│       └── json.hpp                    # Auto-downloaded by build script
-└── algorithms/
-    ├── fcfs/
-    │   ├── fcfs.cpp                    # C++ source
-    │   ├── fcfs_fallback.js            # Pure JS fallback
-    │   ├── fcfs.js                     # [GENERATED] Emscripten glue
-    │   └── fcfs.wasm                   # [GENERATED] WASM binary
-    ├── sjf/   (same pattern)
-    ├── srtf/  (same pattern)
-    ├── round_robin/ (same pattern)
-    └── priority/ (same pattern)
+Next.js (localhost:3000)  ──POST /api/schedule──▶  Crow C++ (localhost:8080)
+         ◀─────────────────────JSON response──────────────────────────────────
 ```
 
 ---
 
-## Quick Start (with JS Fallback — no build required)
+## Local Development
 
-The simulator works **out of the box** using pure JavaScript fallbacks. Just serve the project:
+You need two terminals — one for the backend and one for the frontend.
 
+### Prerequisites
+- **Backend**: CMake ≥ 3.16, GCC/Clang/MSVC with C++17 support, Git
+- **Frontend**: Node.js ≥ 18, npm
+
+---
+
+### Terminal 1 — Backend (C++ HTTP Server)
+
+**Option A (Easiest — One Click Batch Script):**
+```cmd
+cd backend
+.\run.bat
+```
+
+**Option B (Manual with g++ / MinGW):**
 ```powershell
-# Windows PowerShell
-cd "C:\Users\subha\Downloads\CPU Schedular"
-python -m http.server 8080
+cd backend
+mkdir build ; cd build
+g++ -std=c++17 -O2 -I..\include -I..\third_party ..\main.cpp ..\src\fcfs.cpp ..\src\sjf.cpp ..\src\srtf.cpp ..\src\round_robin.cpp ..\src\priority.cpp -o server.exe -lws2_32
+.\server.exe
 ```
 
-Then open **http://localhost:8080** in your browser.
-
-> **Why a server?** WASM files must be served over HTTP, not `file://`. Python's built-in server is the easiest option.
+The server starts on **http://localhost:8080**.
 
 ---
 
-## Building the C++ → WebAssembly Modules
-
-For full C++ performance via WebAssembly, install Emscripten and run the build script.
-
-### Step 1: Install Emscripten SDK
-
-**Windows:**
-```powershell
-# In a directory of your choice (e.g. C:\emsdk)
-git clone https://github.com/emscripten-core/emsdk.git
-cd emsdk
-.\emsdk install latest
-.\emsdk activate latest
-.\emsdk_env.ps1       # Adds emcc to PATH for this session
-```
-
-**Linux / macOS / WSL:**
-```bash
-git clone https://github.com/emscripten-core/emsdk.git
-cd emsdk
-./emsdk install latest
-./emsdk activate latest
-source ./emsdk_env.sh
-```
-
-Verify: `emcc --version` should print something like `emcc (Emscripten gcc/clang-like replacement) 3.x.x`.
-
-### Step 2: Run the Build Script
-
-**Windows (PowerShell):**
-```powershell
-cd "C:\Users\subha\Downloads\CPU Schedular"
-.\build.ps1
-```
-
-**Linux / macOS / WSL:**
-```bash
-cd /path/to/cpu-schedular
-chmod +x build.sh
-./build.sh
-```
-
-The build script:
-1. Verifies `emcc` is on PATH
-2. Downloads `nlohmann/json` single-header (v3.11.3) if not already present
-3. Compiles each `.cpp` file with `MODULARIZE=1` and a unique `EXPORT_NAME` so modules don't collide on the same page
-4. Outputs `.js` glue + `.wasm` binary into each algorithm's folder
-
-### Step 3: Serve Locally
-
-```powershell
-cd "C:\Users\subha\Downloads\CPU Schedular"
-python -m http.server 8080
-```
-
-Open **http://localhost:8080**. The status badge in the UI will say **"Running on WebAssembly"** when compiled modules are loaded.
-
----
-
-## Manual Build (per algorithm)
-
-If you prefer to compile one algorithm at a time:
+### Terminal 2 — Frontend (Next.js)
 
 ```bash
-# From the project root (with emcc on PATH and third_party/ containing nlohmann/json)
-emcc algorithms/fcfs/fcfs.cpp \
-     -o algorithms/fcfs/fcfs.js \
-     -s MODULARIZE=1 \
-     -s EXPORT_NAME="FCFSModule" \
-     -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap"]' \
-     -s ENVIRONMENT=web \
-     -s ALLOW_MEMORY_GROWTH=1 \
-     -I third_party \
-     -std=c++17 \
-     -O2
+cd frontend
+npm install
+npm run dev
 ```
 
-Repeat for each algorithm, changing the source file, output filename, and `EXPORT_NAME`:
-
-| Algorithm | Source | Output | EXPORT_NAME |
-|-----------|--------|--------|-------------|
-| FCFS | `fcfs/fcfs.cpp` | `fcfs/fcfs.js` | `FCFSModule` |
-| SJF | `sjf/sjf.cpp` | `sjf/sjf.js` | `SJFModule` |
-| SRTF | `srtf/srtf.cpp` | `srtf/srtf.js` | `SRTFModule` |
-| Round Robin | `round_robin/round_robin.cpp` | `round_robin/round_robin.js` | `RoundRobinModule` |
-| Priority | `priority/priority.cpp` | `priority/priority.js` | `PriorityModule` |
+Open **http://localhost:3000** in your browser.
 
 ---
 
-## JSON Data Contract
+## API Reference
 
-All algorithms share the same input/output shape, so `app.js` has a single rendering path.
+### `POST /api/schedule`
 
-**Input:**
+**Request body:**
 ```json
 {
+  "algorithm": "round_robin",
   "quantum": 2,
-  "preemptive": false,
   "processes": [
     { "pid": "P1", "arrival_time": 0, "burst_time": 5, "priority": 1 },
     { "pid": "P2", "arrival_time": 1, "burst_time": 3, "priority": 2 }
@@ -171,71 +87,79 @@ All algorithms share the same input/output shape, so `app.js` has a single rende
 }
 ```
 
-**Output:**
+**Response:**
 ```json
 {
   "gantt_chart": [
-    { "pid": "P1", "start": 0, "end": 5 },
-    { "pid": "P2", "start": 5, "end": 8 }
+    { "pid": "P1", "start": 0, "end": 2 },
+    { "pid": "P2", "start": 2, "end": 4 }
   ],
   "process_metrics": [
-    { "pid": "P1", "arrival_time": 0, "burst_time": 5,
-      "completion_time": 5, "turnaround_time": 5,
-      "waiting_time": 0, "response_time": 0 }
+    { "pid": "P1", "completion_time": 5, "turnaround_time": 5, "waiting_time": 0, "response_time": 0 }
   ],
   "averages": {
-    "avg_waiting_time": 1.0,
-    "avg_turnaround_time": 4.0,
-    "avg_response_time": 1.0
+    "avg_waiting_time": 3.33,
+    "avg_turnaround_time": 6.0,
+    "avg_response_time": 1.5
   }
 }
 ```
 
+### `GET /api/health`
+Returns `{"status":"ok"}`.
+
 ---
 
-## Verification Examples
+## Deployment
 
-### FCFS — Expected Output
+### Frontend → Vercel
 
-| PID | Arrival | Burst | Completion | Turnaround | Waiting | Response |
-|-----|---------|-------|------------|------------|---------|----------|
-| P1 | 0 | 5 | 5 | 5 | 0 | 0 |
-| P2 | 1 | 3 | 8 | 7 | 4 | 4 |
-| P3 | 2 | 8 | 16 | 14 | 6 | 6 |
+1. Push your repo to GitHub.
+2. Import the repo in Vercel — set the **Root Directory** to `frontend/`.
+3. Add environment variable: `NEXT_PUBLIC_API_URL=https://your-backend-url`.
+4. Deploy.
 
-Avg Waiting: **3.33** · Avg Turnaround: **8.67**
+### Backend → Render / Railway / Fly.io
 
-### Round Robin (Q=2) — Gantt Chart
+Using the included `backend/Dockerfile`:
+
+```bash
+cd backend
+docker build -t cpu-scheduler-backend .
+docker run -p 8080:8080 cpu-scheduler-backend
+```
+
+Or point Render/Railway/Fly.io at the `backend/` folder — they auto-build from the Dockerfile.
+
+> **CORS**: Once deployed, replace `"*"` in `main.cpp`'s `add_cors` lambda with your real Vercel URL (e.g., `https://your-app.vercel.app`).
+
+---
+
+## Project Structure
 
 ```
-P1[0-2] → P2[2-4] → P3[4-6] → P1[6-8] → P2[8-9] → P3[9-11] → P1[11-12] → P3[12-16]
+├── backend/
+│   ├── CMakeLists.txt          # CMake build — auto-fetches Crow v1.2.0
+│   ├── main.cpp                # Crow HTTP server, CORS, /api/schedule route
+│   ├── Dockerfile
+│   ├── include/
+│   │   ├── Process.hpp
+│   │   ├── SchedulerResult.hpp
+│   │   └── SchedulerDispatch.hpp
+│   ├── src/
+│   │   ├── fcfs.cpp
+│   │   ├── sjf.cpp
+│   │   ├── srtf.cpp
+│   │   ├── round_robin.cpp
+│   │   └── priority.cpp
+│   └── third_party/nlohmann/json.hpp
+└── frontend/
+    ├── app/page.tsx            # Main simulator page
+    ├── components/
+    │   ├── AlgorithmSelector.tsx
+    │   ├── ProcessInputTable.tsx
+    │   ├── GanttChart.tsx
+    │   └── MetricsTable.tsx
+    ├── lib/api.ts              # runScheduler() fetch wrapper
+    └── .env.local              # NEXT_PUBLIC_API_URL=http://localhost:8080
 ```
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Algorithm Logic | C++17 (compiled to WASM) |
-| Build Tool | Emscripten (`emcc`) |
-| JSON Parsing | [nlohmann/json](https://github.com/nlohmann/json) v3.11.3 |
-| Frontend | HTML5 + Vanilla CSS + Vanilla JS (no frameworks) |
-| Charts | [Chart.js](https://www.chartjs.org/) v4.4.3 (CDN) |
-| Fonts | Inter + JetBrains Mono (Google Fonts) |
-
----
-
-## Troubleshooting
-
-**"WASM not available — using JavaScript fallback"**
-→ The `.wasm` files haven't been built yet. Run `build.ps1` after installing Emscripten. The JS fallback produces identical results.
-
-**"Failed to load fcfs.js"**
-→ Make sure you're serving via HTTP (`python -m http.server 8080`), not opening `index.html` directly via `file://`.
-
-**Emscripten compile error about `nlohmann/json.hpp` not found**
-→ The build script should auto-download it. If it fails, manually download `json.hpp` from https://github.com/nlohmann/json/releases and place it at `third_party/nlohmann/json.hpp`.
-
-**emcc not recognized**
-→ Make sure you ran `.\emsdk_env.ps1` (Windows) or `source ./emsdk_env.sh` (Linux/macOS) in the same terminal session where you run the build script.

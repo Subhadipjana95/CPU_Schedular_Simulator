@@ -18,11 +18,11 @@ interface Props {
 }
 
 const ALGORITHMS = [
-  { value: "fcfs",        label: "FCFS — First Come First Served" },
-  { value: "sjf",         label: "SJF — Shortest Job First" },
-  { value: "srtf",        label: "SRTF — Shortest Remaining Time First" },
-  { value: "round_robin", label: "Round Robin" },
-  { value: "priority",    label: "Priority (Non-Preemptive)" },
+  { value: "FCFS",        label: "FCFS — First Come First Served" },
+  { value: "SJF",         label: "SJF — Shortest Job First" },
+  { value: "SRTF",        label: "SRTF — Shortest Remaining Time First" },
+  { value: "Round Robin", label: "Round Robin" },
+  { value: "Priority",    label: "Priority (Non-Preemptive)" },
 ];
 
 export function AlgorithmSelector({

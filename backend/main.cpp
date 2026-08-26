@@ -111,10 +111,17 @@ static void handle_client(socket_handle client_sock) {
                              << err_body;
                 } else {
                     std::string algo = input.at("algorithm").get<std::string>();
+                    std::string algo_lower = algo;
+                    for (char& c : algo_lower) {
+                        c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+                    }
                     const auto& registry = scheduler_registry();
-                    auto it = registry.find(algo);
+                    auto it = registry.find(algo_lower);
                     if (it == registry.end()) {
-                        std::string err_body = R"({"error":"Unknown algorithm. Valid: fcfs, sjf, srtf, round_robin, priority"})";
+                        it = registry.find(algo);
+                    }
+                    if (it == registry.end()) {
+                        std::string err_body = R"({"error":"Unknown algorithm. Valid: FCFS, SJF, SRTF, ROUND_ROBIN, PRIORITY"})";
                         response << "HTTP/1.1 400 Bad Request\r\n"
                                  << make_cors_headers()
                                  << "Content-Type: application/json\r\n"

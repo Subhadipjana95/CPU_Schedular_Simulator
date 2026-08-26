@@ -21,8 +21,8 @@ const ALGORITHMS = [
   { value: "FCFS",        label: "FCFS — First Come First Served" },
   { value: "SJF",         label: "SJF — Shortest Job First" },
   { value: "SRTF",        label: "SRTF — Shortest Remaining Time First" },
-  { value: "Round Robin", label: "Round Robin" },
-  { value: "Priority",    label: "Priority (Non-Preemptive)" },
+  { value: "ROUND_ROBIN", label: "Round Robin" },
+  { value: "PRIORITY",    label: "Priority (Non-Preemptive)" },
 ];
 
 export function AlgorithmSelector({
@@ -49,7 +49,7 @@ export function AlgorithmSelector({
         </Select>
       </div>
 
-      {algorithm === "round_robin" && (
+      {algorithm === "ROUND_ROBIN" && (
         <div className="flex flex-col gap-1.5 w-full">
           <Label>Time Quantum</Label>
           <Input

@@ -17,6 +17,11 @@ json run_priority(const json& input);
 // Registry maps algorithm name -> function
 inline const std::unordered_map<std::string, SchedulerFn>& scheduler_registry() {
     static const std::unordered_map<std::string, SchedulerFn> registry = {
+        {"FCFS",        run_fcfs},
+        {"SJF",         run_sjf},
+        {"SRTF",        run_srtf},
+        {"ROUND_ROBIN", run_round_robin},
+        {"PRIORITY",    run_priority},
         {"fcfs",        run_fcfs},
         {"sjf",         run_sjf},
         {"srtf",        run_srtf},

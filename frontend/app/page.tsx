@@ -19,14 +19,14 @@ const DEFAULT_PROCESSES: Process[] = [
 ];
 
 export default function Home() {
-  const [algorithm, setAlgorithm] = useState("fcfs");
+  const [algorithm, setAlgorithm] = useState("FCFS");
   const [quantum, setQuantum]     = useState(2);
   const [processes, setProcesses] = useState<Process[]>(DEFAULT_PROCESSES);
   const [result, setResult]       = useState<ScheduleResult | null>(null);
   const [loading, setLoading]     = useState(false);
   const [error, setError]         = useState<string | null>(null);
 
-  const showPriority = algorithm === "priority";
+  const showPriority = algorithm === "PRIORITY";
 
   async function handleRun() {
     setLoading(true);
@@ -35,7 +35,7 @@ export default function Home() {
     try {
       const payload = {
         algorithm,
-        ...(algorithm === "round_robin" ? { quantum } : {}),
+        ...(algorithm === "ROUND_ROBIN" ? { quantum } : {}),
         processes: processes.map((p) => ({
           ...p,
           priority: showPriority ? (p.priority ?? 0) : 0,
@@ -54,7 +54,7 @@ export default function Home() {
     setResult(null);
     setError(null);
     setProcesses(DEFAULT_PROCESSES);
-    setAlgorithm("fcfs");
+    setAlgorithm("FCFS");
     setQuantum(2);
   }
 

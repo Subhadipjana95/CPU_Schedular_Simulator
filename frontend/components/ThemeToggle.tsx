@@ -48,7 +48,7 @@ export function ThemeToggle() {
 
   return (
     <Button
-      variant="ghost"
+      variant="outline"
       size="icon-sm"
       onClick={toggleTheme}
       className="rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"

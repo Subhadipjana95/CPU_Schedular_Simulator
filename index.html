@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CPU Scheduling Simulator — WebAssembly</title>
+  <meta name="description" content="A fully client-side CPU Scheduling Simulator powered by C++ compiled to WebAssembly. Supports FCFS, SJF, SRTF, Round Robin, and Priority scheduling algorithms with interactive Gantt chart visualization." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Chart.js (CDN — only used for comparison visualization) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ── HEADER ──────────────────────────────────────────── -->
+  <header>
+    <div class="container header-inner">
+      <div class="logo">
+        <div class="logo-icon">⚙️</div>
+        <div>
+          <h1>CPU Scheduling Simulator</h1>
+          <p>C++ → WebAssembly</p>
+        </div>
+      </div>
+      <div class="header-badge">
+        <span class="badge-dot"></span>
+        C++ via WASM
+      </div>
+    </div>
+  </header>
+
+  <!-- ── MAIN ────────────────────────────────────────────── -->
+  <main>
+    <div class="container">
+      <div class="main-grid">
+
+        <!-- ══════════════════════════════════════
+             LEFT PANEL: Controls
+        ══════════════════════════════════════ -->
+        <aside>
+
+          <!-- Algorithm Selection Card -->
+          <div class="card" style="margin-bottom:20px">
+            <div class="card-header">
+              <div class="card-title"><span class="card-icon">🧠</span> Algorithm</div>
+            </div>
+            <div class="card-body">
+
+              <div class="form-group">
+                <label for="algo-select">Scheduling Algorithm</label>
+                <select id="algo-select">
+                  <option value="fcfs">FCFS — First Come First Serve</option>
+                  <option value="sjf">SJF — Shortest Job First (Non-Preemptive)</option>
+                  <option value="srtf">SRTF — Shortest Remaining Time First</option>
+                  <option value="round_robin">Round Robin</option>
+                  <option value="priority">Priority Scheduling</option>
+                </select>
+              </div>
+
+              <!-- Quantum (Round Robin only) -->
+              <div class="form-group" id="quantum-row">
+                <label for="quantum-input">Time Quantum</label>
+                <input type="number" id="quantum-input" min="1" max="100" value="2"
+                       placeholder="e.g. 2" />
+              </div>
+
+              <!-- Priority variant -->
+              <div class="form-group" id="priority-variant-row">
+                <label>Scheduling Mode</label>
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 0">
+                  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:0.85rem;color:var(--text-primary)">
+                    <input type="radio" name="priority-mode" id="priority-nonpreemptive" value="non-preemptive" checked
+                           style="width:auto;accent-color:var(--accent-purple)">
+                    Non-Preemptive
+                  </label>
+                  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:0.85rem;color:var(--text-primary)">
+                    <input type="radio" name="priority-mode" id="priority-preemptive" value="preemptive"
+                           style="width:auto;accent-color:var(--accent-purple)">
+                    Preemptive
+                  </label>
+                </div>
+                <p style="font-size:0.72rem;color:var(--text-muted);margin-top:4px">
+                  Lower number = Higher priority (e.g., Priority 1 runs before Priority 3)
+                </p>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Process Table Card -->
+          <div class="card" style="margin-bottom:20px">
+            <div class="card-header">
+              <div class="card-title"><span class="card-icon">📋</span> Processes</div>
+            </div>
+            <div class="card-body">
+
+              <div class="process-table-wrapper">
+                <table id="process-table">
+                  <thead>
+                    <tr>
+                      <th>PID</th>
+                      <th>Arrival</th>
+                      <th>Burst</th>
+                      <th class="priority-col">Priority</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="process-table-body">
+                    <!-- Rows injected by app.js -->
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="btn-group">
+                <button class="btn btn-add" id="add-process-btn">
+                  <span>＋</span> Add Process
+                </button>
+                <button class="btn btn-clear" id="clear-process-btn" title="Clear all processes">
+                  🗑
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- WASM Status + Run Card -->
+          <div class="card">
+            <div class="card-body">
+              <!-- WASM Status -->
+              <div id="wasm-status" class="wasm-status">
+                <span>○</span> WASM status: will be determined on first run
+              </div>
+
+              <!-- Error message -->
+              <div id="error-msg" class="error-msg"></div>
+
+              <!-- Run Button -->
+              <button class="btn btn-run" id="run-btn">
+                <div class="spinner"></div>
+                <span class="btn-text">▶ Run Simulation</span>
+              </button>
+            </div>
+          </div>
+
+        </aside>
+
+        <!-- ══════════════════════════════════════
+             RIGHT PANEL: Results
+        ══════════════════════════════════════ -->
+        <section class="results-panel">
+
+          <!-- Empty state -->
+          <div id="empty-state" class="empty-state">
+            <div class="empty-icon">📊</div>
+            <h3>No simulation yet</h3>
+            <p>Configure your processes and algorithm on the left, then hit <strong>Run Simulation</strong>.</p>
+          </div>
+
+          <!-- Results (hidden until first run) -->
+          <div id="results-container" style="display:none;flex-direction:column;gap:24px">
+
+            <!-- Gantt Chart Card -->
+            <div class="card result-reveal">
+              <div class="card-header">
+                <div class="card-title">
+                  <span class="card-icon">📊</span>
+                  Gantt Chart
+                </div>
+                <span class="algo-tag" id="algo-run-label">FCFS</span>
+              </div>
+              <div class="card-body">
+                <div class="gantt-scroll">
+                  <div class="gantt-canvas-wrapper">
+                    <canvas id="gantt-canvas"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Summary Stats -->
+            <div class="card result-reveal" style="animation-delay:0.06s">
+              <div class="card-header">
+                <div class="card-title"><span class="card-icon">📈</span> Summary</div>
+              </div>
+              <div class="card-body">
+                <div class="stats-grid">
+                  <div class="stat-card stat-waiting">
+                    <div class="stat-label">Avg Waiting Time</div>
+                    <div class="stat-value" id="stat-waiting">0.00</div>
+                    <div class="stat-unit">time units</div>
+                  </div>
+                  <div class="stat-card stat-turnaround">
+                    <div class="stat-label">Avg Turnaround</div>
+                    <div class="stat-value" id="stat-turnaround">0.00</div>
+                    <div class="stat-unit">time units</div>
+                  </div>
+                  <div class="stat-card stat-response">
+                    <div class="stat-label">Avg Response</div>
+                    <div class="stat-value" id="stat-response">0.00</div>
+                    <div class="stat-unit">time units</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Metrics Table Card -->
+            <div class="card result-reveal" style="animation-delay:0.12s">
+              <div class="card-header">
+                <div class="card-title"><span class="card-icon">📋</span> Process Metrics</div>
+              </div>
+              <div class="card-body" style="padding:0">
+                <div class="metrics-table-wrapper">
+                  <table id="metrics-table">
+                    <thead>
+                      <tr>
+                        <th>Process</th>
+                        <th>Arrival</th>
+                        <th>Burst</th>
+                        <th>Completion</th>
+                        <th>Turnaround</th>
+                        <th>Waiting</th>
+                        <th>Response</th>
+                      </tr>
+                    </thead>
+                    <tbody id="metrics-table-body"></tbody>
+                    <tfoot id="metrics-table-foot"></tfoot>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Algorithm History & Comparison Chart -->
+            <div class="card result-reveal" style="animation-delay:0.18s">
+              <div class="card-header">
+                <div class="card-title"><span class="card-icon">⚖️</span> Algorithm Comparison</div>
+              </div>
+              <div class="card-body">
+                <div class="section-divider">
+                  <span class="section-divider-label">Run History</span>
+                  <div class="section-divider-line"></div>
+                </div>
+                <div id="history-list" class="history-list">
+                  <p style="font-size:0.78rem;color:var(--text-muted);text-align:center;padding:12px">
+                    Run 2+ different algorithms to compare them here
+                  </p>
+                </div>
+
+                <!-- Comparison Chart (visible once ≥ 2 runs) -->
+                <div id="comparison-chart-container">
+                  <div class="section-divider" style="margin-top:20px">
+                    <span class="section-divider-label">Comparison Chart</span>
+                    <div class="section-divider-line"></div>
+                  </div>
+                  <canvas id="comparison-chart" height="240"></canvas>
+                </div>
+              </div>
+            </div>
+
+          </div> <!-- /results-container -->
+
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Gantt Tooltip (portal, fixed position) -->
+  <div id="gantt-tooltip"></div>
+
+  <!-- App Orchestrator -->
+  <script src="app.js"></script>
+
+</body>
+</html>

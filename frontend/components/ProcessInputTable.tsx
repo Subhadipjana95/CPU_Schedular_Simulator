@@ -45,7 +45,7 @@ export function ProcessInputTable({ processes, showPriority, onChange }: Props) 
     <div className="space-y-3">
       {/* Header */}
       <div
-        className={`grid gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400 px-1 ${
+        className={`grid gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1 ${
           showPriority ? "grid-cols-[1fr_1fr_1fr_1fr_auto]" : "grid-cols-[1fr_1fr_1fr_auto]"
         }`}
       >
@@ -68,21 +68,18 @@ export function ProcessInputTable({ processes, showPriority, onChange }: Props) 
             value={p.pid}
             onChange={(e) => update(idx, "pid", e.target.value)}
             placeholder="P1"
-            className="bg-slate-800/60 border-slate-600 text-white placeholder:text-slate-500 focus:ring-indigo-500"
           />
           <Input
             type="number"
             min={0}
             value={p.arrival_time}
             onChange={(e) => update(idx, "arrival_time", Number(e.target.value))}
-            className="bg-slate-800/60 border-slate-600 text-white focus:ring-indigo-500"
           />
           <Input
             type="number"
             min={1}
             value={p.burst_time}
             onChange={(e) => update(idx, "burst_time", Number(e.target.value))}
-            className="bg-slate-800/60 border-slate-600 text-white focus:ring-indigo-500"
           />
           {showPriority && (
             <Input
@@ -90,7 +87,6 @@ export function ProcessInputTable({ processes, showPriority, onChange }: Props) 
               min={0}
               value={p.priority ?? 0}
               onChange={(e) => update(idx, "priority", Number(e.target.value))}
-              className="bg-slate-800/60 border-slate-600 text-white focus:ring-indigo-500"
             />
           )}
           <Button
@@ -98,7 +94,7 @@ export function ProcessInputTable({ processes, showPriority, onChange }: Props) 
             variant="ghost"
             onClick={() => removeRow(idx)}
             disabled={processes.length <= 1}
-            className="text-slate-500 hover:text-red-400 hover:bg-red-400/10"
+            className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -110,7 +106,7 @@ export function ProcessInputTable({ processes, showPriority, onChange }: Props) 
         variant="outline"
         size="sm"
         onClick={addRow}
-        className="mt-1 border-dashed border-slate-600 text-slate-400 hover:text-white hover:border-indigo-500 hover:bg-indigo-500/10 w-full"
+        className="mt-1 border-dashed text-muted-foreground hover:text-foreground w-full"
       >
         <PlusCircle className="h-4 w-4 mr-2" />
         Add Process

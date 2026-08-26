@@ -17,11 +17,11 @@ const COLORS = [
 ];
 
 const TEXT_COLORS = [
-  "text-indigo-400",  "text-violet-400", "text-cyan-400",    "text-emerald-400",
-  "text-amber-400",   "text-rose-400",   "text-pink-400",    "text-sky-400",
-  "text-teal-400",    "text-orange-400", "text-lime-400",    "text-fuchsia-400",
-  "text-red-400",     "text-blue-400",   "text-green-400",   "text-yellow-400",
-  "text-purple-400",  "text-indigo-300", "text-violet-300",  "text-cyan-300",
+  "text-indigo-600 dark:text-indigo-400",  "text-violet-600 dark:text-violet-400", "text-cyan-600 dark:text-cyan-400",    "text-emerald-600 dark:text-emerald-400",
+  "text-amber-600 dark:text-amber-400",   "text-rose-600 dark:text-rose-400",   "text-pink-600 dark:text-pink-400",    "text-sky-600 dark:text-sky-400",
+  "text-teal-600 dark:text-teal-400",    "text-orange-600 dark:text-orange-400", "text-lime-600 dark:text-lime-400",    "text-fuchsia-600 dark:text-fuchsia-400",
+  "text-red-600 dark:text-red-400",     "text-blue-600 dark:text-blue-400",   "text-green-600 dark:text-green-400",   "text-yellow-600 dark:text-yellow-400",
+  "text-purple-600 dark:text-purple-400",  "text-indigo-600 dark:text-indigo-300", "text-violet-600 dark:text-violet-300",  "text-cyan-600 dark:text-cyan-300",
 ];
 
 export function GanttChart({ ganttChart }: Props) {
@@ -41,28 +41,28 @@ export function GanttChart({ ganttChart }: Props) {
   }
 
   return (
-    <Card className="bg-slate-800/50 border-slate-700">
+    <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-semibold text-white">
+        <CardTitle className="text-lg font-semibold">
           Gantt Chart
         </CardTitle>
       </CardHeader>
       <CardContent>
         {/* Bars */}
-        <div className="relative flex h-14 rounded-lg overflow-hidden border border-slate-700 mb-3">
+        <div className="relative flex h-14 rounded-lg overflow-hidden border border-border mb-3">
           {ganttChart.map((seg, i) => {
             const width = ((seg.end - seg.start) / span) * 100;
             const ci = pidColorMap.get(seg.pid) ?? 0;
             return (
               <div
                 key={i}
-                className={`${COLORS[ci]} flex items-center justify-center text-white text-xs font-bold border-r border-slate-900/30 transition-all group relative`}
+                className={`${COLORS[ci]} flex items-center justify-center text-white text-xs font-bold border-r border-background/40 transition-all group relative`}
                 style={{ width: `${width}%` }}
                 title={`${seg.pid}: ${seg.start}–${seg.end}`}
               >
                 {width > 3 && <span className="truncate px-1">{seg.pid}</span>}
                 {/* Tooltip */}
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-slate-900 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-10 border border-slate-700">
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-popover text-popover-foreground text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-10 border border-border">
                   {seg.pid}: {seg.start} → {seg.end} ({seg.end - seg.start} units)
                 </div>
               </div>
@@ -71,7 +71,7 @@ export function GanttChart({ ganttChart }: Props) {
         </div>
 
         {/* Time markers */}
-        <div className="relative flex text-xs text-slate-500 select-none">
+        <div className="relative flex text-xs text-muted-foreground select-none">
           {ganttChart.map((seg, i) => {
             const leftPct = ((seg.start - startTime) / span) * 100;
             const widthPct = ((seg.end - seg.start) / span) * 100;

@@ -32,20 +32,16 @@ export function AlgorithmSelector({
   onQuantumChange,
 }: Props) {
   return (
-    <div className="flex flex-wrap items-end gap-4">
-      <div className="flex flex-col gap-1.5">
-        <Label className="text-sm font-medium text-slate-300">Algorithm</Label>
+    <div className="flex flex-col gap-4 w-full">
+      <div className="flex flex-col gap-1.5 w-full">
+        <Label>Algorithm</Label>
         <Select value={algorithm} onValueChange={(v) => v && onAlgorithmChange(v)}>
-          <SelectTrigger className="w-70 bg-slate-800/60 border-slate-600 text-white focus:ring-indigo-500">
+          <SelectTrigger className="w-full">
             <SelectValue placeholder="Select algorithm…" />
           </SelectTrigger>
-          <SelectContent className="bg-slate-800 border-slate-600 text-white">
+          <SelectContent>
             {ALGORITHMS.map((a) => (
-              <SelectItem
-                key={a.value}
-                value={a.value}
-                className="hover:bg-slate-700 focus:bg-slate-700"
-              >
+              <SelectItem key={a.value} value={a.value}>
                 {a.label}
               </SelectItem>
             ))}
@@ -54,16 +50,14 @@ export function AlgorithmSelector({
       </div>
 
       {algorithm === "round_robin" && (
-        <div className="flex flex-col gap-1.5">
-          <Label className="text-sm font-medium text-slate-300">
-            Time Quantum
-          </Label>
+        <div className="flex flex-col gap-1.5 w-full">
+          <Label>Time Quantum</Label>
           <Input
             type="number"
             min={1}
             value={quantum}
             onChange={(e) => onQuantumChange(Math.max(1, Number(e.target.value)))}
-            className="w-28 bg-slate-800/60 border-slate-600 text-white focus:ring-indigo-500"
+            className="w-full"
           />
         </div>
       )}

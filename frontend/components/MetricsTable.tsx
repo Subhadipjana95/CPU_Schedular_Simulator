@@ -23,69 +23,64 @@ export function MetricsTable({ result }: Props) {
   const { process_metrics, averages } = result;
 
   return (
-    <Card className="bg-slate-800/50 border-slate-700">
+    <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-semibold text-white">
+        <CardTitle className="text-lg font-semibold">
           Process Metrics
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-0">
-        <div className="overflow-x-auto rounded-b-lg">
+      <CardContent className="px-6 pb-6 pt-0">
+        <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="border-slate-700 hover:bg-transparent">
-                <TableHead className="text-slate-400 font-semibold">PID</TableHead>
-                <TableHead className="text-slate-400 font-semibold text-right">
+              <TableRow>
+                <TableHead className="font-semibold px-2">PID</TableHead>
+                <TableHead className="font-semibold text-right px-2">
                   Completion
                 </TableHead>
-                <TableHead className="text-slate-400 font-semibold text-right">
+                <TableHead className="font-semibold text-right px-2">
                   Turnaround
                 </TableHead>
-                <TableHead className="text-slate-400 font-semibold text-right">
+                <TableHead className="font-semibold text-right px-2">
                   Waiting
                 </TableHead>
-                <TableHead className="text-slate-400 font-semibold text-right">
+                <TableHead className="font-semibold text-right px-2">
                   Response
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {process_metrics.map((m, i) => (
-                <TableRow
-                  key={m.pid}
-                  className={`border-slate-700/50 ${
-                    i % 2 === 0 ? "bg-slate-800/30" : "bg-slate-800/10"
-                  } hover:bg-slate-700/40`}
-                >
-                  <TableCell className="font-mono font-bold text-indigo-400">
+              {process_metrics.map((m) => (
+                <TableRow key={m.pid}>
+                  <TableCell className="font-mono font-bold text-indigo-600 dark:text-indigo-400 px-2">
                     {m.pid}
                   </TableCell>
-                  <TableCell className="text-right text-slate-200">
+                  <TableCell className="text-right px-2">
                     {m.completion_time}
                   </TableCell>
-                  <TableCell className="text-right text-slate-200">
+                  <TableCell className="text-right px-2">
                     {m.turnaround_time}
                   </TableCell>
-                  <TableCell className="text-right text-slate-200">
+                  <TableCell className="text-right px-2">
                     {m.waiting_time}
                   </TableCell>
-                  <TableCell className="text-right text-slate-200">
+                  <TableCell className="text-right px-2">
                     {m.response_time}
                   </TableCell>
                 </TableRow>
               ))}
 
               {/* Averages row */}
-              <TableRow className="border-t-2 border-slate-600 bg-slate-700/30 font-semibold">
-                <TableCell className="text-slate-300 italic">Average</TableCell>
-                <TableCell className="text-right text-slate-400">—</TableCell>
-                <TableCell className="text-right text-emerald-400">
+              <TableRow className="border-t-2 border-border bg-muted/40 font-semibold">
+                <TableCell className="italic text-muted-foreground px-2">Average</TableCell>
+                <TableCell className="text-right text-muted-foreground px-2">—</TableCell>
+                <TableCell className="text-right text-emerald-600 dark:text-emerald-400 font-bold px-2">
                   {fmt(averages.avg_turnaround_time)}
                 </TableCell>
-                <TableCell className="text-right text-amber-400">
+                <TableCell className="text-right text-amber-600 dark:text-amber-400 font-bold px-2">
                   {fmt(averages.avg_waiting_time)}
                 </TableCell>
-                <TableCell className="text-right text-cyan-400">
+                <TableCell className="text-right text-cyan-600 dark:text-cyan-400 font-bold px-2">
                   {fmt(averages.avg_response_time)}
                 </TableCell>
               </TableRow>

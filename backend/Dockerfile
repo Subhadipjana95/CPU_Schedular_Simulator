@@ -4,8 +4,9 @@ WORKDIR /app
 
 COPY . .
 
-# Compile directly with g++ in Linux
+# Compile directly with g++ and statically link libstdc++ and libgcc
 RUN g++ -std=c++17 -O3 -pthread \
+    -static-libgcc -static-libstdc++ \
     -Iinclude -Ithird_party \
     main.cpp src/fcfs.cpp src/sjf.cpp src/srtf.cpp src/round_robin.cpp src/priority.cpp \
     -o server
